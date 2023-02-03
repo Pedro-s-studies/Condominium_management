@@ -1,4 +1,4 @@
-const baseUrl = 'https://api.b7web.com.br/devcond/api/admin'
+const baseUrl = 'http://127.0.0.1:8000/api'
 
 const request = async (method, endpoint, params, token = null) => {
   method = method.toLowerCase()
@@ -20,7 +20,9 @@ const request = async (method, endpoint, params, token = null) => {
   if (token) {
     headers.Authorization = 'Bearer ' + token
   }
-  let req = await fetch(fullUrl, { method, body })
+
+  let req = await fetch(fullUrl, { method, headers, body })
+
   let json = await req.json()
   return json
 }
@@ -38,6 +40,12 @@ export default () => {
     },
     login: async (email, password) => {
       let json = await request('post', '/auth/login', { email, password })
+      return json
+    },
+    logout: async () => {
+      let token = localStorage.getItem('token')
+      let json = await request('post', '/auth/logout', {}, token)
+      localStorage.removeItem('token')
       return json
     },
   }
