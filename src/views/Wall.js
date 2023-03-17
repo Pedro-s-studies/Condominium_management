@@ -9,6 +9,11 @@ import {
   CCardBody,
   CCardHeader,
   CCol,
+  CModal,
+  CModalBody,
+  CModalFooter,
+  CModalHeader,
+  CModalTitle,
   CRow,
   CTable,
 } from '@coreui/react'
@@ -21,6 +26,33 @@ export default () => {
 
   const [loading, setLoading] = useState(true)
   const [list, setList] = useState([])
+  const [showModal, setShowModal] = useState(false)
+  const [modalTitleField, setModalTitleField] = useState('')
+
+  useEffect(() => {
+    const req = async () => {
+      let json = await api.getWall()
+      if (json.error === '') {
+        setList(
+          json.list.map((i) => ({
+            ...i,
+            actions: (
+              <CButton color="info" onClick={(i) => setShowModal(!showModal)}>
+                Editar
+              </CButton>
+              // <CButtonGroup>
+              //   {/* <CButton color="info" onClick={handleEditButton(i)}> */}
+              //   {/* <CButton color="danger">Excluir</CButton> */}
+              // </CButtonGroup>
+            ),
+          })),
+        )
+      } else {
+        alert(json.error)
+      }
+    }
+    req()
+  }, [])
 
   const fields = [
     { label: 'Título', key: 'title' },
@@ -28,59 +60,46 @@ export default () => {
     { label: 'Ações', key: 'actions', _style: { width: '1px' } },
   ]
 
-  useEffect(() => {
-    // eslint-disable-next-line no-unused-expressions
-    getList
-  }, [])
+  const handleCloseModal = () => {
+    setShowModal(false)
+  }
 
-  const getList = async () => {
-    setLoading(true)
-    const result = await api.getWall()
-    setLoading(false)
-    if (result.error === '') {
-      setList(result.list)
-      console.log(result.list)
-    } else {
-      alert(result.error)
-    }
+  const handleEditButton = (i) => {
+    console.log(i)
+    setShowModal(!showModal)
   }
 
   return (
-    <CRow>
-      <CCol>
-        <h2>Mural de Avisos</h2>
+    <>
+      <CRow>
+        <CCol>
+          <h2>Mural de Avisos</h2>
 
-        <CCard>
-          <CCardHeader>
-            <CButton color="primary">
-              <CIcon icon={cilCheck}></CIcon> Novo Aviso
-            </CButton>
-          </CCardHeader>
-          <CCardBody>
-            <CTable
-              items={list}
-              fields={fields}
-              loading={loading}
-              noItemViewSlot=" "
-              hover
-              striped
-              bordered
-              pagination
-              itemsPerPage={5}
-              scopedSlots={{
-                actions: (item, index) => (
-                  <td>
-                    <CButtonGroup>
-                      <CButton color="info">Editar</CButton>
-                      <CButton color="danger">Remover</CButton>
-                    </CButtonGroup>
-                  </td>
-                ),
-              }}
-            />
-          </CCardBody>
-        </CCard>
-      </CCol>
-    </CRow>
+          <CCard>
+            <CCardHeader>
+              <CButton color="primary">
+                <CIcon icon={cilCheck}></CIcon> Novo Aviso
+              </CButton>
+            </CCardHeader>
+            <CCardBody>
+              <CTable items={list} columns={fields} striped hover bordered />
+            </CCardBody>
+          </CCard>
+        </CCol>
+      </CRow>
+
+      <CModal alignment="center" visible={showModal} onClose={() => setShowModal(false)}>
+        <CModalHeader>
+          <CModalTitle>Modal title</CModalTitle>
+        </CModalHeader>
+        <CModalBody></CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={() => setShowModal(false)}>
+            Close
+          </CButton>
+          <CButton color="primary">Save changes</CButton>
+        </CModalFooter>
+      </CModal>
+    </>
   )
 }
